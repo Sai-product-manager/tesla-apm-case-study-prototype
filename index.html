@@ -20,6 +20,23 @@
 .car-credit{font-size:10px;color:#8793a3;margin-top:7px}.car-credit a{color:#b9c7d9}
 @media(max-width:760px){.hero{grid-template-columns:1fr;padding:42px 0 36px;gap:20px}.hero-visual,.hero-visual img{min-height:240px}.hero-caption{align-items:flex-start;flex-direction:column}}
 
+
+.live-cockpit{border:1px solid #303b49;border-radius:22px;overflow:hidden;background:radial-gradient(ellipse at 50% 32%,#243447 0,#111923 56%,#0b1017 100%);box-shadow:0 24px 70px #0008;padding:18px}
+.cockpit-top,.cockpit-bottom{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:10px;color:#aab8c8;letter-spacing:.08em}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#64d6a1;margin-right:7px;box-shadow:0 0 12px #64d6a1}
+.car-stage{position:relative;min-height:205px;display:flex;align-items:center;justify-content:center;padding:14px 0 0}
+.car-art{width:100%;max-width:590px;filter:drop-shadow(0 18px 20px #0008);transition:filter .25s,transform .25s}
+.car-art.lights-on{filter:drop-shadow(0 0 16px #dbeeff88)}
+.car-state{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:10px;color:#c4d0de;white-space:nowrap;background:#0a111bcc;border:1px solid #344456;padding:5px 10px;border-radius:99px}
+.cockpit-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.cockpit-stats>div{background:#ffffff0a;border:1px solid #ffffff12;border-radius:10px;padding:10px}
+.cockpit-stats small{display:block;color:#94a4b7;font-size:9px;letter-spacing:.1em}.cockpit-stats strong{font:700 19px Manrope}
+.cockpit-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cockpit-btn{background:#ffffff0b;color:#e7edf5;border:1px solid #ffffff1c;border-radius:10px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;min-height:66px}
+.cockpit-btn span{font-size:18px}.cockpit-btn b{font-size:10px;font-weight:600}.cockpit-btn[aria-pressed=true]{background:#63252b;border-color:#e82127;color:white}
+.cockpit-bottom{margin-top:13px;letter-spacing:0;font-size:10px}.sim-label{color:#e6a0a3}
+.vehicle-note{border:1px dashed #455366;border-radius:10px;padding:15px;margin:14px 0;display:flex;flex-direction:column;gap:4px}.vehicle-note span{font-size:12px;color:var(--muted)}
+@media(max-width:760px){.car-stage{min-height:165px}.cockpit-controls{grid-template-columns:repeat(2,1fr)}.cockpit-bottom{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
@@ -33,10 +50,32 @@
 <div class="notice">Independent concept · Not affiliated with Tesla · Simulated prototype, no live vehicle/API connection.</div>
 <div class="actions"><a class="btn primary" href="#prototype">Explore the interactive prototype ↓</a><a class="btn" href="#strategy">View product strategy</a></div>
 </div>
-<figure class="hero-visual">
-<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Tesla-Model-Y.jpg" alt="Tesla Model Y photographed in profile" loading="eager">
-<figcaption class="hero-caption"><strong>Designed around the EV owner experience</strong><span>Illustrative vehicle image · not a Tesla product screenshot</span></figcaption>
-</figure>
+<div class="live-cockpit" aria-label="Interactive simulated electric vehicle cockpit">
+  <div class="cockpit-top"><span><i class="live-dot"></i> LIVE INTERACTIVE DEMO</span><span id="heroConnection">Demo vehicle · Online</span></div>
+  <div class="car-stage">
+    <svg class="car-art" viewBox="0 0 640 260" role="img" aria-label="Original vector illustration of a modern electric crossover">
+      <defs><linearGradient id="carPaint" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f7f9fc"/><stop offset=".48" stop-color="#aeb9c7"/><stop offset="1" stop-color="#596777"/></linearGradient><linearGradient id="glass" x1="0" x2="1"><stop stop-color="#243648"/><stop offset="1" stop-color="#0c121a"/></linearGradient></defs>
+      <ellipse cx="322" cy="213" rx="250" ry="18" fill="#000" opacity=".48"/>
+      <path d="M77 174 Q90 143 130 133 L190 119 Q228 64 290 55 L420 58 Q464 65 508 126 L560 143 Q578 151 579 177 L567 194 L83 194Z" fill="url(#carPaint)" stroke="#f6f8fb" stroke-width="2"/>
+      <path d="M207 116 Q242 70 293 68 L414 70 Q451 77 482 122Z" fill="url(#glass)" stroke="#647487" stroke-width="3"/>
+      <path d="M341 69 L341 122 M190 121 L483 124" stroke="#647487" stroke-width="3" fill="none"/>
+      <path d="M94 158 Q126 143 154 146 L150 165 L91 174Z" fill="#eaf4ff"/><path d="M514 145 L556 157 L566 174 L523 168Z" fill="#e82127"/>
+      <path d="M168 145 L492 145" stroke="#667587" stroke-width="2"/><path d="M238 149 L238 184 M455 149 L455 184" stroke="#758293" stroke-width="2"/>
+      <circle cx="190" cy="190" r="35" fill="#080c12" stroke="#7e8a98" stroke-width="5"/><circle cx="190" cy="190" r="17" fill="#aab5c2"/><circle cx="190" cy="190" r="7" fill="#293442"/>
+      <circle cx="478" cy="190" r="35" fill="#080c12" stroke="#7e8a98" stroke-width="5"/><circle cx="478" cy="190" r="17" fill="#aab5c2"/><circle cx="478" cy="190" r="7" fill="#293442"/>
+      <path d="M80 179 Q320 205 579 179" stroke="#f9fbff" stroke-width="2" opacity=".6" fill="none"/>
+    </svg>
+    <div class="car-state" id="carState">Vehicle secured · Park</div>
+  </div>
+  <div class="cockpit-stats"><div><small>BATTERY</small><strong id="heroBattery">78%</strong></div><div><small>RANGE ESTIMATE</small><strong id="heroRange">312 km</strong></div><div><small>CLIMATE</small><strong id="heroClimate">Off</strong></div></div>
+  <div class="cockpit-controls">
+    <button class="cockpit-btn" id="lockBtn" aria-pressed="true"><span>▣</span><b id="lockLabel">Unlock</b></button>
+    <button class="cockpit-btn" id="heroClimateBtn" aria-pressed="false"><span>❄</span><b id="climateLabel">Climate</b></button>
+    <button class="cockpit-btn" id="chargeBtn" aria-pressed="false"><span>ϟ</span><b id="chargeLabel">Start charge</b></button>
+    <button class="cockpit-btn" id="lightsBtn" aria-pressed="false"><span>◉</span><b id="lightsLabel">Lights</b></button>
+  </div>
+  <div class="cockpit-bottom"><span id="cockpitMessage" aria-live="polite">All systems ready. Try a control above.</span><span class="sim-label">SIMULATED CONTROLS</span></div>
+</div>
 </section>
 <section class="section" id="problem"><div class="section-head"><div><div class="eyebrow">01 / Opportunity</div><h2>The problem to explore</h2></div><p>A hypothesis-led opportunity, not a claim about measured Tesla customer behaviour.</p></div>
 <div class="grid">
@@ -48,7 +87,7 @@
 </div></section>
 <section class="section" id="prototype"><div class="section-head"><div><div class="eyebrow">02 / Interactive demo</div><h2>Explore the experience</h2></div><p>All controls below update a local demonstration state. They do not communicate with a vehicle, calendar, charger, utility, or Tesla service.</p></div>
 <div class="grid">
-<div class="card span7"><div class="small">SIMULATED VEHICLE EXPERIENCE</div><h3 id="vehicleTitle">Daily commuter · Model Y concept</h3><p class="muted">Illustrative dashboard state—not real telemetry.</p><img class="vehicle-visual" src="https://commons.wikimedia.org/wiki/Special:FilePath/Tesla-Model-Y.jpg" alt="Tesla Model Y exterior reference image" loading="lazy">
+<div class="card span7"><div class="small">SIMULATED VEHICLE EXPERIENCE</div><h3 id="vehicleTitle">Daily commuter · Model Y concept</h3><p class="muted">Illustrative dashboard state—not real telemetry.</p><div class="vehicle-note"><strong>Vehicle state is simulated</strong><span>Use the interactive cockpit above to test the controls. No real car is connected.</span></div>
 <div class="readout"><div><span class="metric-label">Battery</span><strong id="battery">78%</strong></div><div><span class="metric-label">Cabin temperature</span><strong id="cabin">18°C</strong></div><div><span class="metric-label">Target temperature</span><strong id="target">21°C</strong></div></div>
 <div class="controls"><div class="control"><label for="departure">Planned departure <strong id="departureText">08:30</strong></label><input id="departure" type="range" min="6" max="11" step=".25" value="8.5"></div><div class="control"><label for="temperature">Cabin target <strong id="temperatureText">21°C</strong></label><input id="temperature" type="range" min="18" max="25" value="21"></div></div>
 <div class="switchrow"><div><strong>Calendar context</strong><div class="small">Use an opted-in departure estimate (simulated)</div></div><button class="switch" id="calendarSwitch" aria-label="Toggle simulated calendar context" aria-pressed="false"><i></i></button></div>
@@ -90,7 +129,7 @@
 </div></section>
 <section class="section"><div class="section-head"><div><div class="eyebrow">06 / Reflection</div><h2>What this case study demonstrates</h2></div></div><div class="grid"><div class="card span6"><h3>Product management approach</h3><p class="muted">Problem framing, user segmentation, hypothesis definition, MVP prioritisation, product requirements, user journey design, success metrics, risk assessment, and phased validation planning.</p></div><div class="card span6"><h3>What I would validate next</h3><p class="muted">Conduct primary user research, validate the energy model with engineering data, test willingness to grant calendar permissions, and assess technical feasibility before making any impact claim.</p></div></div></section>
 </main>
-<footer class="footer"><div class="wrap"><strong>Independent product management concept.</strong><br>This is a self-initiated learning case study. It is not an official Tesla product, proposal, partnership, or representation of Tesla systems. All vehicle states and scenario calculations are simulated. No live APIs, real telemetry, or external personal data are used.<br><br>© 2026 · Product strategy and prototype by Sai Chelluri.<br><span class="car-credit">Vehicle photograph: Bull-Doser, “Tesla-Model-Y.jpg”, public domain (CC0). <a href="https://commons.wikimedia.org/wiki/File:Tesla-Model-Y.jpg" target="_blank" rel="noopener">Image source and licence</a>. The photo is used as a visual reference only and does not imply Tesla endorsement.</span></div></footer>
+<footer class="footer"><div class="wrap"><strong>Independent product management concept.</strong><br>This is a self-initiated learning case study. It is not an official Tesla product, proposal, partnership, or representation of Tesla systems. All vehicle states and scenario calculations are simulated. No live APIs, real telemetry, or external personal data are used.<br><br>© 2026 · Product strategy and prototype by Sai Chelluri.<br><span class="car-credit">The vehicle illustration is an original portfolio visual and does not represent a production Tesla interface.</span></div></footer>
 <script>
 const $=id=>document.getElementById(id);
 function setSwitch(id,on){$(id).setAttribute('aria-pressed',String(on))}
@@ -113,6 +152,21 @@ function updateModel(){
  $('activeUsers').textContent=Math.round(active).toLocaleString();$('annualEnergy').textContent=annual.toFixed(1)+' MWh';$('annualCost').textContent=cost.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
 }
 ['users','adoption','events','energySaved'].forEach(id=>$(id).addEventListener('input',updateModel));
-updateDemo();updateModel();
+updateDemo();updateModel();paintCockpit();
+
+const sim={locked:true,climate:false,charging:false,lights:false};
+function paintCockpit(){
+ $('lockBtn').setAttribute('aria-pressed',String(sim.locked));$('lockLabel').textContent=sim.locked?'Unlock':'Lock';
+ $('heroClimateBtn').setAttribute('aria-pressed',String(sim.climate));$('climateLabel').textContent=sim.climate?'Climate on':'Climate';
+ $('chargeBtn').setAttribute('aria-pressed',String(sim.charging));$('chargeLabel').textContent=sim.charging?'Stop charge':'Start charge';
+ $('lightsBtn').setAttribute('aria-pressed',String(sim.lights));$('lightsLabel').textContent=sim.lights?'Lights on':'Lights';
+ $('heroClimate').textContent=sim.climate?'On · 21°C':'Off';
+ $('carState').textContent=(sim.locked?'Vehicle secured':'Vehicle unlocked')+' · Park';
+ document.querySelector('.car-art').classList.toggle('lights-on',sim.lights);
+}
+$('lockBtn').addEventListener('click',()=>{sim.locked=!sim.locked;$('cockpitMessage').textContent=sim.locked?'Demo vehicle locked.':'Demo vehicle unlocked.';paintCockpit()});
+$('heroClimateBtn').addEventListener('click',()=>{sim.climate=!sim.climate;setSwitch('climateSwitch',sim.climate);$('cockpitMessage').textContent=sim.climate?'Cabin pre-conditioning started in the simulation.':'Cabin pre-conditioning stopped.';updateDemo();paintCockpit()});
+$('chargeBtn').addEventListener('click',()=>{sim.charging=!sim.charging;$('cockpitMessage').textContent=sim.charging?'Charging session started in demo mode.':'Demo charging session stopped.';paintCockpit()});
+$('lightsBtn').addEventListener('click',()=>{sim.lights=!sim.lights;$('cockpitMessage').textContent=sim.lights?'Exterior lights switched on in the demo.':'Exterior lights switched off.';paintCockpit()});
 </script>
 </body></html>
