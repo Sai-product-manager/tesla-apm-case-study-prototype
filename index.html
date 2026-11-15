@@ -40,13 +40,13 @@
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap nav"><div class="brand">PRODUCT CONCEPT <span> / TEFS</span></div><nav class="navlinks"><a href="#problem">Problem</a><a href="#prototype">Prototype</a><a href="#strategy">Strategy &amp; PRD</a><a href="#metrics">Simulator</a><a href="#roadmap">Roadmap</a></nav></div></header>
-<main class="wrap">
+<header class="top"><div class="wrap nav"><div class="brand">PRODUCT CONCEPT <span> / TEFS</span></div><nav class="navlinks"><a href="#home">Home</a><a href="#concept">Product Concept</a><a href="#prototype">Prototype</a><a href="#strategy">Strategy</a><a href="#impact">Business Impact</a><a href="#about">About</a></nav></div></header>
+<main class="wrap" id="home">
 <section class="hero">
 <div class="hero-copy">
 <div class="eyebrow">Independent Associate Product Manager Case Study</div>
 <h1>Tesla Energy &amp;<br>Fleet Sync (TEFS)</h1>
-<p><strong>An AI-assisted product concept for smarter vehicle energy management.</strong> Explore how calendar-aware departure planning, cabin pre-conditioning and energy-aware charging could create a more thoughtful EV ownership experience.</p>
+<p><strong>An AI-Powered Product Concept for Smarter Vehicle Energy Management.</strong><br>Smarter scheduling. Greater efficiency. A more sustainable tomorrow.</p><p><strong>Drive Smart. Save Energy.</strong></p>
 <div class="notice">Independent concept · Not affiliated with Tesla · Simulated prototype, no live vehicle/API connection.</div>
 <div class="actions"><a class="btn primary" href="#prototype">Explore the interactive prototype ↓</a><a class="btn" href="#strategy">View product strategy</a></div>
 </div>
@@ -67,7 +67,7 @@
     </svg>
     <div class="car-state" id="carState">Vehicle secured · Park</div>
   </div>
-  <div class="cockpit-stats"><div><small>BATTERY</small><strong id="heroBattery">78%</strong></div><div><small>RANGE ESTIMATE</small><strong id="heroRange">312 km</strong></div><div><small>CLIMATE</small><strong id="heroClimate">Off</strong></div></div>
+  <div class="cockpit-stats"><div><small>BATTERY</small><strong id="heroBattery">78%</strong></div><div><small>RANGE ESTIMATE</small><strong id="heroRange">364 mi</strong></div><div><small>CLIMATE</small><strong id="heroClimate">Off</strong></div></div>
   <div class="cockpit-controls">
     <button class="cockpit-btn" id="lockBtn" aria-pressed="true"><span>▣</span><b id="lockLabel">Unlock</b></button>
     <button class="cockpit-btn" id="heroClimateBtn" aria-pressed="false"><span>❄</span><b id="climateLabel">Climate</b></button>
@@ -77,6 +77,22 @@
   <div class="cockpit-bottom"><span id="cockpitMessage" aria-live="polite">All systems ready. Try a control above.</span><span class="sim-label">SIMULATED CONTROLS</span></div>
 </div>
 </section>
+
+<section class="section" id="concept">
+<div class="section-head"><div><div class="eyebrow">PRODUCT CONCEPT / LIVE DASHBOARD</div><h2>Your vehicle energy overview</h2></div><p>Interactive concept dashboard. Every control updates this local simulation; no live vehicle or account is connected.</p></div>
+<div class="grid">
+<div class="card span4"><div class="small">YOUR VEHICLE</div><h3>Model Y · Concept</h3><div class="metric" id="dashBattery">78%</div><p class="muted">Estimated range <strong id="dashRange">364 mi</strong></p><div class="small">Illustrative vehicle state</div></div>
+<div class="card span4"><div class="small">CLIMATE CONTROL</div><h3><span id="dashTemp">72°F</span> · <span id="comfortState">Ideal Comfort</span></h3><p class="muted" id="climateStatus">Energy Optimized</p><div class="actions"><button class="btn primary" data-climate="Auto">Auto</button><button class="btn" data-climate="AC">AC</button><button class="btn" data-climate="Heat">Heat</button></div><div class="controls"><div class="control"><label for="dashTemperature">Target temperature <strong id="dashTempText">72°F</strong></label><input id="dashTemperature" type="range" min="60" max="80" value="72"></div></div></div>
+<div class="card span4"><div class="small">SMART CALENDAR SYNC <span class="pill" id="calendarStatus">Active · Demo</span></div><h3>Nov 16 · Meeting delayed</h3><p class="muted">Meeting Delayed → Departure: <strong id="dashDeparture">6:30 PM</strong></p><p class="muted" id="calendarMessage">Pre-conditioning adjusted in this simulation.</p><button class="btn" id="delayMeeting">Simulate +30 min delay</button></div>
+<div class="card span6"><div class="small">GRID-AWARE CHARGING <span class="pill" id="chargeMode">Eco Mode</span></div><h3>Off-peak charging</h3><p class="muted">Suggested window: 10 PM – 6 AM</p><div class="metric" id="chargeCost">$12.40</div><div class="metric-label">Estimated cost per session</div><div class="controls"><div class="control"><label for="chargeRate">Electricity rate <strong id="rateText">$0.16/kWh</strong></label><input id="chargeRate" type="range" min="5" max="40" value="16"></div><div class="control"><label for="chargeKwh">Energy needed <strong id="kwhText">77.5 kWh</strong></label><input id="chargeKwh" type="range" min="10" max="100" value="77.5" step="2.5"></div></div><button class="btn primary" id="toggleEco">Toggle Eco Mode</button></div>
+<div class="card span6"><div class="small">ENERGY IMPACT · THIS WEEK</div><h3>Smarter decisions. A greener planet.</h3><div class="readout"><div><span class="metric-label">Energy saved</span><strong id="weeklyEnergy">12.5 kWh</strong></div><div><span class="metric-label">CO₂ reduced</span><strong id="weeklyCarbon">6.3 kg</strong></div><div><span class="metric-label">Estimated savings</span><strong id="weeklySavings">$2.10</strong></div></div><p class="small">Illustrative sample dashboard values, not measured vehicle outcomes.</p></div>
+</div>
+<div class="section-head" style="margin-top:34px"><div><div class="eyebrow">FEATURE OVERVIEW</div><h2>Three product capabilities</h2></div></div>
+<div class="grid">
+<div class="card span4"><h3>Smart Calendar Departure Sync</h3><p class="muted">Adjust cabin pre-conditioning based on calendar schedule changes, with permission and driver confirmation.</p><button class="btn" data-jump="#prototype">Explore this feature →</button></div>
+<div class="card span4"><h3>Heat-Pump Cabin Pre-Conditioning</h3><p class="muted">Optimise comfort while reducing energy consumption through a user-selected temperature and departure window.</p><button class="btn" data-jump="#prototype">Explore this feature →</button></div>
+<div class="card span4"><h3>Grid-Aware Smart Charging</h3><p class="muted">Explore charging recommendations using illustrative solar availability and off-peak electricity rates.</p><button class="btn" data-jump="#metrics">Try the energy model →</button></div>
+</div></section>
 <section class="section" id="problem"><div class="section-head"><div><div class="eyebrow">01 / Opportunity</div><h2>The problem to explore</h2></div><p>A hypothesis-led opportunity, not a claim about measured Tesla customer behaviour.</p></div>
 <div class="grid">
 <div class="card span7"><h3>When plans change, fixed schedules may not</h3><p class="muted">An EV owner may schedule cabin pre-conditioning for a planned departure. If a meeting runs late or plans change, climate control could run earlier or longer than needed. Separately, owners may have limited visibility into how charging time choices interact with their electricity tariff or available home-energy signals.</p><p class="muted">This creates an opportunity to test a more adaptive experience: let the driver choose a departure window, decide whether calendar context may be used, and review charging suggestions before anything changes.</p></div>
@@ -119,6 +135,10 @@
 <p class="small">Formula: eligible users × adoption × events per week × assumed kWh per event × 52 weeks. Cost illustration uses an editable-by-design placeholder tariff of $0.15/kWh. It excludes rebound effects, weather, vehicle differences, charging losses, and actual user behaviour.</p></div>
 <div class="card span5"><h3>North-star and guardrail metrics</h3><p><strong>North-star:</strong> percentage of opted-in users who complete a planned departure with the vehicle at their chosen comfort target.</p><ul class="list"><li>Activation: eligible users who enable the feature.</li><li>Suggestion acceptance: accepted prompts / prompts shown.</li><li>Departure readiness: departures meeting user-selected target.</li><li>Energy per pre-conditioning session, measured against a comparable baseline.</li><li>Trust guardrails: opt-out rate, manual overrides, complaints, and permission revocations.</li></ul><p class="small">Targets should be set only after baseline research and a pilot; no performance targets are presented as achieved results here.</p></div>
 </div></section>
+
+<section class="section" id="impact"><div class="section-head"><div><div class="eyebrow">BUSINESS IMPACT · MODELLED SCENARIO</div><h2>Potential impact at scale</h2></div><p>Illustrative scenario figures for demonstrating value hypotheses. These are not Tesla data, verified forecasts, or measured results.</p></div>
+<div class="grid"><div class="card span4"><div class="metric">318.6 GWh</div><div class="metric-label">Illustrative annual energy savings</div></div><div class="card span4"><div class="metric">412 MW</div><div class="metric-label">Illustrative peak-load shift</div></div><div class="card span4"><div class="metric">$89.2M</div><div class="metric-label">Illustrative customer utility savings</div></div></div>
+<div class="callout" style="margin-top:16px">These scenario figures need a documented fleet size, adoption rate, baseline energy use, tariff assumptions, and calculation model before being treated as defensible estimates. Use the interactive calculator in Simulator to explore pilot-level assumptions.</div></section>
 <section class="section" id="roadmap"><div class="section-head"><div><div class="eyebrow">05 / Execution</div><h2>Proposed 12-week validation roadmap</h2></div><p>Indicative sequence for a hypothetical cross-functional team. Timing depends on technical feasibility, approvals, and access to test participants.</p></div>
 <div class="grid">
 <div class="card span4"><div class="eyebrow">Weeks 1–2</div><h3>Discovery</h3><ul class="list"><li>Interview EV owners across commuter and home-energy segments.</li><li>Map current scheduling behaviour and pain points.</li><li>Review privacy, vehicle, and integration feasibility.</li></ul><strong>Exit:</strong><p class="muted">Validated problem statement and prioritised use case.</p></div>
@@ -127,7 +147,7 @@
 <div class="card span6"><div class="eyebrow">Weeks 9–10</div><h3>Evaluate</h3><p class="muted">Compare outcomes against baseline and a suitable control where feasible. Review user feedback, energy measurement quality, trust, and operational burden.</p></div>
 <div class="card span6"><div class="eyebrow">Weeks 11–12</div><h3>Decision</h3><p class="muted">Make a go / iterate / stop recommendation based on evidence, safety, feasibility, and user value. Do not expand until guardrails are met.</p></div>
 </div></section>
-<section class="section"><div class="section-head"><div><div class="eyebrow">06 / Reflection</div><h2>What this case study demonstrates</h2></div></div><div class="grid"><div class="card span6"><h3>Product management approach</h3><p class="muted">Problem framing, user segmentation, hypothesis definition, MVP prioritisation, product requirements, user journey design, success metrics, risk assessment, and phased validation planning.</p></div><div class="card span6"><h3>What I would validate next</h3><p class="muted">Conduct primary user research, validate the energy model with engineering data, test willingness to grant calendar permissions, and assess technical feasibility before making any impact claim.</p></div></div></section>
+<section class="section" id="about"><div class="section-head"><div><div class="eyebrow">06 / About this case study</div><h2>What this case study demonstrates</h2></div></div><div class="grid"><div class="card span6"><h3>Product management approach</h3><p class="muted">Problem framing, user segmentation, hypothesis definition, MVP prioritisation, product requirements, user journey design, success metrics, risk assessment, and phased validation planning.</p></div><div class="card span6"><h3>What I would validate next</h3><p class="muted">Conduct primary user research, validate the energy model with engineering data, test willingness to grant calendar permissions, and assess technical feasibility before making any impact claim.</p></div></div></section>
 </main>
 <footer class="footer"><div class="wrap"><strong>Independent product management concept.</strong><br>This is a self-initiated learning case study. It is not an official Tesla product, proposal, partnership, or representation of Tesla systems. All vehicle states and scenario calculations are simulated. No live APIs, real telemetry, or external personal data are used.<br><br>© 2026 · Product strategy and prototype by Sai Chelluri.<br><span class="car-credit">The vehicle illustration is an original portfolio visual and does not represent a production Tesla interface.</span></div></footer>
 <script>
@@ -169,5 +189,26 @@ $('heroClimateBtn').addEventListener('click',()=>{sim.climate=!sim.climate;setSw
 $('chargeBtn').addEventListener('click',()=>{sim.charging=!sim.charging;$('cockpitMessage').textContent=sim.charging?'Charging session started in demo mode.':'Demo charging session stopped.';paintCockpit()});
 $('lightsBtn').addEventListener('click',()=>{sim.lights=!sim.lights;$('cockpitMessage').textContent=sim.lights?'Exterior lights switched on in the demo.':'Exterior lights switched off.';paintCockpit()});
 paintCockpit();
+
+const dashboardSim={eco:true,departure:18*60+30,climateMode:'Auto'};
+function displayTime(m){const hr=Math.floor(m/60)%24,mins=m%60;return (hr%12||12)+':'+String(mins).padStart(2,'0')+(hr>=12?' PM':' AM')}
+function updateDashboard(){
+ const temp=Number($('dashTemperature').value),rate=Number($('chargeRate').value)/100,kwh=Number($('chargeKwh').value);
+ $('dashTemp').textContent=temp+'°F';$('dashTempText').textContent=temp+'°F';
+ $('comfortState').textContent=temp>=68&&temp<=74?'Ideal Comfort':'Custom Comfort';
+ $('chargeCost').textContent='
+</body></html>+(rate*kwh).toFixed(2);
+ $('rateText').textContent='
+</body></html>+rate.toFixed(2)+'/kWh';$('kwhText').textContent=kwh.toFixed(1)+' kWh';
+ $('chargeMode').textContent=dashboardSim.eco?'Eco Mode':'Standard Mode';
+ $('dashDeparture').textContent=displayTime(dashboardSim.departure);
+}
+['dashTemperature','chargeRate','chargeKwh'].forEach(id=>$(id).addEventListener('input',updateDashboard));
+$('delayMeeting').addEventListener('click',()=>{dashboardSim.departure=Math.min(dashboardSim.departure+30,23*60+30);$('calendarMessage').textContent='Departure suggestion moved by 30 minutes. Review before applying.';updateDashboard()});
+$('toggleEco').addEventListener('click',()=>{dashboardSim.eco=!dashboardSim.eco;updateDashboard();$('cockpitMessage').textContent=dashboardSim.eco?'Eco charging suggestion enabled.':'Standard charging mode selected.'});
+document.querySelectorAll('[data-climate]').forEach(b=>b.addEventListener('click',()=>{dashboardSim.climateMode=b.dataset.climate;$('climateStatus').textContent=dashboardSim.climateMode+' mode · simulated';document.querySelectorAll('[data-climate]').forEach(x=>x.classList.toggle('primary',x===b));$('heroClimate').textContent=dashboardSim.climateMode+' · '+$('dashTemp').textContent;}));
+document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>document.querySelector(b.dataset.jump).scrollIntoView({behavior:'smooth'})));
+
+updateDashboard();
 </script>
 </body></html>
