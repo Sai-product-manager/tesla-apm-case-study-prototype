@@ -152,7 +152,7 @@ function updateModel(){
  $('activeUsers').textContent=Math.round(active).toLocaleString();$('annualEnergy').textContent=annual.toFixed(1)+' MWh';$('annualCost').textContent=cost.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
 }
 ['users','adoption','events','energySaved'].forEach(id=>$(id).addEventListener('input',updateModel));
-updateDemo();updateModel();paintCockpit();
+updateDemo();updateModel();
 
 const sim={locked:true,climate:false,charging:false,lights:false};
 function paintCockpit(){
@@ -168,5 +168,6 @@ $('lockBtn').addEventListener('click',()=>{sim.locked=!sim.locked;$('cockpitMess
 $('heroClimateBtn').addEventListener('click',()=>{sim.climate=!sim.climate;setSwitch('climateSwitch',sim.climate);$('cockpitMessage').textContent=sim.climate?'Cabin pre-conditioning started in the simulation.':'Cabin pre-conditioning stopped.';updateDemo();paintCockpit()});
 $('chargeBtn').addEventListener('click',()=>{sim.charging=!sim.charging;$('cockpitMessage').textContent=sim.charging?'Charging session started in demo mode.':'Demo charging session stopped.';paintCockpit()});
 $('lightsBtn').addEventListener('click',()=>{sim.lights=!sim.lights;$('cockpitMessage').textContent=sim.lights?'Exterior lights switched on in the demo.':'Exterior lights switched off.';paintCockpit()});
+paintCockpit();
 </script>
 </body></html>
