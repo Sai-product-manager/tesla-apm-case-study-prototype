@@ -25,7 +25,7 @@
 .cockpit-top,.cockpit-bottom{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:10px;color:#aab8c8;letter-spacing:.08em}
 .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#64d6a1;margin-right:7px;box-shadow:0 0 12px #64d6a1}
 .car-stage{position:relative;min-height:205px;display:flex;align-items:center;justify-content:center;padding:14px 0 0}
-.car-art{width:100%;max-width:590px;filter:drop-shadow(0 18px 20px #0008);transition:filter .25s,transform .25s}
+.car-art{width:100%;max-width:590px;filter:drop-shadow(0 18px 20px #0008);transition:filter .25s,transform .25s}.real-car-photo{height:240px;object-fit:contain;border-radius:12px;background:#e7e9ec}
 .car-art.lights-on{filter:drop-shadow(0 0 16px #dbeeff88)}
 .car-state{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:10px;color:#c4d0de;white-space:nowrap;background:#0a111bcc;border:1px solid #344456;padding:5px 10px;border-radius:99px}
 .cockpit-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
@@ -53,20 +53,10 @@
 <div class="live-cockpit" aria-label="Interactive simulated electric vehicle cockpit">
   <div class="cockpit-top"><span><i class="live-dot"></i> LIVE INTERACTIVE DEMO</span><span id="heroConnection">Demo vehicle · Online</span></div>
   <div class="car-stage">
-    <svg class="car-art" viewBox="0 0 640 260" role="img" aria-label="Original vector illustration of a modern electric crossover">
-      <defs><linearGradient id="carPaint" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f7f9fc"/><stop offset=".48" stop-color="#aeb9c7"/><stop offset="1" stop-color="#596777"/></linearGradient><linearGradient id="glass" x1="0" x2="1"><stop stop-color="#243648"/><stop offset="1" stop-color="#0c121a"/></linearGradient></defs>
-      <ellipse cx="322" cy="213" rx="250" ry="18" fill="#000" opacity=".48"/>
-      <path d="M77 174 Q90 143 130 133 L190 119 Q228 64 290 55 L420 58 Q464 65 508 126 L560 143 Q578 151 579 177 L567 194 L83 194Z" fill="url(#carPaint)" stroke="#f6f8fb" stroke-width="2"/>
-      <path d="M207 116 Q242 70 293 68 L414 70 Q451 77 482 122Z" fill="url(#glass)" stroke="#647487" stroke-width="3"/>
-      <path d="M341 69 L341 122 M190 121 L483 124" stroke="#647487" stroke-width="3" fill="none"/>
-      <path d="M94 158 Q126 143 154 146 L150 165 L91 174Z" fill="#eaf4ff"/><path d="M514 145 L556 157 L566 174 L523 168Z" fill="#e82127"/>
-      <path d="M168 145 L492 145" stroke="#667587" stroke-width="2"/><path d="M238 149 L238 184 M455 149 L455 184" stroke="#758293" stroke-width="2"/>
-      <circle cx="190" cy="190" r="35" fill="#080c12" stroke="#7e8a98" stroke-width="5"/><circle cx="190" cy="190" r="17" fill="#aab5c2"/><circle cx="190" cy="190" r="7" fill="#293442"/>
-      <circle cx="478" cy="190" r="35" fill="#080c12" stroke="#7e8a98" stroke-width="5"/><circle cx="478" cy="190" r="17" fill="#aab5c2"/><circle cx="478" cy="190" r="7" fill="#293442"/>
-      <path d="M80 179 Q320 205 579 179" stroke="#f9fbff" stroke-width="2" opacity=".6" fill="none"/>
-    </svg>
+    <img class="car-art real-car-photo" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Tesla_Model_Y_%28Facelift%29_%E2%80%93_f_05052026.jpg/1280px-Tesla_Model_Y_%28Facelift%29_%E2%80%93_f_05052026.jpg" alt="Real photograph of a white Tesla Model Y facelift, front three-quarter view" loading="eager" />
     <div class="car-state" id="carState">Vehicle secured · Park</div>
   </div>
+  <div class="car-credit">Vehicle photo: © M 93 / Wikimedia Commons · <a href="https://commons.wikimedia.org/wiki/File:Tesla_Model_Y_(Facelift)_%E2%80%93_f_05052026.jpg" target="_blank" rel="noopener">CC BY-SA 3.0 DE</a></div>
   <div class="cockpit-stats"><div><small>BATTERY</small><strong id="heroBattery">78%</strong></div><div><small>RANGE ESTIMATE</small><strong id="heroRange">364 mi</strong></div><div><small>CLIMATE</small><strong id="heroClimate">Off</strong></div></div>
   <div class="cockpit-controls">
     <button class="cockpit-btn" id="lockBtn" aria-pressed="true"><span>▣</span><b id="lockLabel">Unlock</b></button>
