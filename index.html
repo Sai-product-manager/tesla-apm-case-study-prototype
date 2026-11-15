@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tesla APM Case Study Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            tesla: {
+              red: '#E82127',
+              blue: '#3E6AE1',
+              darkBg: '#000000',
+              darkCard: '#111315',
+              darkBorder: '#22252A',
+              lightBg: '#F4F4F4',
+              lightCard: '#FFFFFF',
+              lightText: '#171A20',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    /* Custom subtle grid background */
+    .bg-grid-pattern {
+      background-size: 32px 32px;
+      background-image: radial-gradient(circle, rgba(128, 128, 128, 0.15) 1px, transparent 1px);
+    }
+    /* Airflow wave animation */
+    @keyframes flowWave {
+      0% { stroke-dashoffset: 48; opacity: 0.2; }
+      50% { opacity: 0.9; }
+      100% { stroke-dashoffset: 0; opacity: 0.2; }
+    }
+    .airflow-path {
+      stroke-dasharray: 12 12;
+      animation: flowWave 1.6s linear infinite;
+    }
+    /* Custom Range Slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(128, 128, 128, 0.3);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #3E6AE1;
+      margin-top: -6px;
+      box-shadow: 0 0 10px rgba(62, 106, 225, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-tesla-lightBg text-tesla-lightText dark:bg-tesla-darkBg dark:text-white min-h-screen bg-grid-pattern selection:bg-tesla-blue selection:text-white">
+
+  <!-- Toast Notification Container (Replaces alert()) -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-white/85 dark:bg-black/85 border-b border-gray-200 dark:border-tesla-darkBorder">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      
+      <!-- Brand / Role Badge -->
+      <div class="flex items-center gap-3">
+        <!-- Minimalist Tesla-inspired T Emblem SVG -->
+        <button onclick="showToast('Tesla Energy & Fleet Sync v2026.44 — APM Case Study')" class="flex items-center gap-2.5 group focus:outline-none">
+          <div class="w-9 h-9 rounded-xl bg-tesla-red flex items-center justify-center shadow-md shadow-red-500/20 group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 5.2c3.5 0 6.8.5 9.6 1.5l.9-2.2C19.3 3.4 15.7 2.8 12 2.8S4.7 3.4 1.5 4.5l.9 2.2C5.2 5.7 8.5 5.2 12 5.2zm0 2.6c-2.6 0-5.1.3-7.4.9l1.1 2.1c1.7-.4 3.5-.6 5.3-.7v11.1h2V10.1c1.8.1 3.6.3 5.3.7l1.1-2.1c-2.3-.6-4.8-.9-7.4-.9z"/>
+            </svg>
+          </div>
+          <div class="text-left">
+            <div class="text-xs font-semibold tracking-widest uppercase text-gray-500 dark:text-gray-400">APM Case Study</div>
+            <div class="text-sm sm:text-base font-bold tracking-tight">Tesla APM Case Study Prototype</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center bg-gray-100 dark:bg-tesla-darkCard p-1 rounded-xl border border-gray-200 dark:border-tesla-darkBorder">
+        <button onclick="switchTab('prototype')" id="tab-prototype" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-white dark:bg-zinc-800 shadow-sm text-tesla-lightText dark:text-white">
+          Interactive UI/UX Prototype
+        </button>
+        <button onclick="switchTab('prd')" id="tab-prd" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">
+          Product Strategy &amp; PRD
+        </button>
+        <button onclick="switchTab('metrics')" id="tab-metrics" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">
+          Fleet Impact Simulator
+        </button>
+      </nav>
+
+      <!-- Recruiter Controls: Persona Switcher & Light/Dark Mode Symbol Toggle -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Persona Selector -->
+        <select id="persona-select" onchange="changePersona(this.value)" aria-label="Select User Persona" class="text-xs sm:text-sm font-medium bg-gray-100 dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder rounded-xl px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-tesla-blue cursor-pointer">
+          <option value="commuter">Persona: Commuter (Model Y)</option>
+          <option value="solar">Persona: Solar + Powerwall</option>
+        </select>
+
+        <!-- Recruiter Theme Toggle Button (Sun / Moon Symbol) -->
+        <button id="theme-toggle" onclick="toggleTheme()" title="Toggle Light / Dark Mode for Recruiter Preference" aria-label="Toggle Light and Dark Mode" class="p-2.5 rounded-xl bg-gray-100 dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder hover:border-tesla-blue dark:hover:border-tesla-blue transition-all flex items-center gap-1.5 shadow-sm">
+          <!-- Sun Icon (Shown in Dark Mode to switch to Light) -->
+          <svg id="icon-sun" class="w-5 h-5 text-amber-400 block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+          <!-- Moon Icon (Shown in Light Mode to switch to Dark) -->
+          <svg id="icon-moon" class="w-5 h-5 text-slate-700 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span id="theme-label" class="hidden sm:inline text-xs font-semibold">Light</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Tab Bar -->
+    <div class="flex md:hidden border-t border-gray-200 dark:border-tesla-darkBorder bg-white/95 dark:bg-black/95 px-2 py-1.5 gap-1">
+      <button onclick="switchTab('prototype')" id="mob-tab-prototype" class="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-zinc-800">UI/UX Prototype</button>
+      <button onclick="switchTab('prd')" id="mob-tab-prd" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-gray-500 dark:text-gray-400">PRD &amp; Strategy</button>
+      <button onclick="switchTab('metrics')" id="mob-tab-metrics" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-gray-500 dark:text-gray-400">Impact Sim</button>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- ========================================================= -->
+    <!-- VIEW 1: INTERACTIVE UI/UX PROTOTYPE (TESLA MODEL STAGE)   -->
+    <!-- ========================================================= -->
+    <section id="view-prototype" class="space-y-6">
+      
+      <!-- Recruiter Banner -->
+      <div class="rounded-2xl p-4 sm:p-5 bg-white dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-tesla-blue mb-1">
+            <span class="w-2 h-2 rounded-full bg-tesla-blue animate-pulse"></span>
+            Interactive Functional Prototype
+          </span>
+          <h1 class="text-lg sm:text-xl font-bold">Test Every Control &amp; Vehicle Telemetry State</h1>
+          <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Every icon and button below updates live thermal math, battery range, and grid load. Switch Light/Dark mode in the top-right.</p>
+        </div>
+        <div class="flex items-center gap-2 self-end sm:self-center">
+          <button onclick="resetSimulation()" class="px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-300 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Reset Demo
+          </button>
+          <button onclick="switchTab('prd')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-tesla-blue text-white hover:bg-blue-600 transition-colors">
+            Read Full PRD &rarr;
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Tesla Model Stage + Controls Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT/CENTER: Tesla Model Interactive Vehicle Visualizer (7 Cols) -->
+        <div class="lg:col-span-7 rounded-3xl bg-white dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder p-5 sm:p-7 flex flex-col justify-between relative overflow-hidden shadow-lg">
+          
+          <!-- Ambient Glow Backdrop -->
+          <div id="ambient-glow" class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl pointer-events-none transition-colors duration-500"></div>
+
+          <!-- Top Vehicle Telemetry Bar -->
+          <div class="relative z-10 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-zinc-800">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 id="vehicle-title" class="text-xl sm:text-2xl font-bold tracking-tight">Model Y Long Range</h2>
+                <span id="status-pill" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                  Parked • Ready
+                </span>
+              </div>
+              <!-- Interactive Model Switcher Pills -->
+              <div class="flex items-center gap-1.5 mt-2">
+                <button onclick="selectModel('modely')" id="model-btn-modely" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-tesla-blue text-white transition-all">Model Y</button>
+                <button onclick="selectModel('cybertruck')" id="model-btn-cybertruck" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:border-tesla-blue transition-all">Cybertruck</button>
+                <button onclick="selectModel('models')" id="model-btn-models" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:border-tesla-blue transition-all">Model S Plaid</button>
+              </div>
+              <p id="location-subtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">Home Charger • Connected to Tesla Energy API</p>
+            </div>
+
+            <!-- Battery & Range Readout -->
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <div class="text-2xl font-bold tabular-nums"><span id="battery-pct">78</span>%</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400"><span id="range-miles">257</span> mi est.</div>
+              </div>
+              <div class="w-12 h-6 rounded-md border-2 border-gray-400 dark:border-zinc-600 p-0.5 flex items-center relative">
+                <div id="battery-bar" class="h-full bg-emerald-500 rounded-sm transition-all duration-500" style="width: 78%;"></div>
+                <div class="w-1 h-2.5 bg-gray-400 dark:bg-zinc-600 -right-1.5 absolute rounded-r-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TESLA MODEL SILHOUETTE BACKGROUND & INTERACTIVE HOTSPOTS -->
+          <div class="relative my-6 py-6 flex flex-col items-center justify-center select-none">
+            
+            <!-- Live Cabin & Exterior Temp Badges -->
+            <div class="w-full flex justify-between items-center px-2 sm:px-6 mb-2 text-xs font-medium">
+              <div class="flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800">
+                <span class="text-gray-500 dark:text-gray-400">Exterior:</span>
+                <span id="ext-temp" class="font-bold">42°F</span>
+              </div>
+              <div class="flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800">
+                <span class="text-gray-500 dark:text-gray-400">Cabin Now:</span>
+                <span id="cabin-temp" class="font-bold text-tesla-blue">46°F</span>
+                <span class="text-gray-400">&rarr;</span>
+                <span class="text-gray-500 dark:text-gray-400">Target:</span>
+                <span id="target-temp-badge" class="font-bold">70°F</span>
+              </div>
+            </div>
+
+            <!-- Custom High-Craft SVG Tesla Model Silhouette with Dynamic Airflow & Interactive Zones -->
+            <div class="relative w-full max-w-xl aspect-[16/7] flex items-center justify-center">
+              <svg viewBox="0 0 800 320" class="w-full h-full drop-shadow-xl" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="carBodyGrad" x1="100" y1="80" x2="700" y2="250" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#3B4252"/>
+                    <stop offset="50%" stop-color="#1E222A"/>
+                    <stop offset="100%" stop-color="#111317"/>
+                  </linearGradient>
+                  <linearGradient id="glassGrad" x1="250" y1="75" x2="550" y2="145" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#3E6AE1" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#0F172A" stop-opacity="0.85"/>
+                  </linearGradient>
+                  <radialGradient id="headlightGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(105 182) scale(75 28)">
+                    <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
+                    <stop offset="100%" stop-color="#3E6AE1" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+
+                <!-- Ground Shadow -->
+                <ellipse cx="405" cy="266" rx="330" ry="16" fill="currentColor" class="text-black/20 dark:text-black/70"/>
+
+                <!-- Headlight Beam (Toggled via Lights Icon) -->
+                <polygon id="svg-headlight-beam" points="105,180 10,155 10,215" fill="url(#headlightGlow)" class="hidden transition-opacity duration-300"/>
+
+                <!-- Dynamic Tesla Vehicle Body Silhouette (Switches between Model Y, Cybertruck, Model S) -->
+                <path id="svg-car-body" d="M92 205 C90 182, 108 166, 148 158 L225 142 C275 96, 345 78, 435 80 C515 82, 585 112, 655 144 C692 150, 712 162, 715 184 L712 216 C712 225, 702 232, 688 232 L646 232 C642 192, 578 192, 574 232 L242 232 C238 192, 174 192, 170 232 L114 232 C98 232, 92 220, 92 205 Z" fill="url(#carBodyGrad)" stroke="#64748B" stroke-width="2" class="transition-all duration-500"/>
+
+                <!-- Panoramic Glass Roof & Side Windows -->
+                <path id="svg-car-glass" d="M242 140 C288 100, 352 86, 432 88 C504 90, 562 114, 616 142 L455 144 L445 92 L435 144 L242 140 Z" fill="url(#glassGrad)" stroke="#94A3B8" stroke-width="1.5" class="transition-all duration-500"/>
+
+                <!-- Subtle Beltline Accent -->
+                <path id="svg-car-beltline" d="M150 168 C290 156, 510 154, 685 164" stroke="#94A3B8" stroke-opacity="0.35" stroke-width="1.5" class="transition-all duration-500"/>
+
+                <!-- Dynamic Thermal HVAC Airflow Lines Inside Cabin (Hidden until Pre-Condition active) -->
+                <g id="svg-airflow-group" class="hidden">
+                  <path d="M265 132 Q335 104, 415 128 T565 126" stroke="#F97316" stroke-width="3.5" stroke-linecap="round" class="airflow-path" id="airflow-1"/>
+                  <path d="M280 142 Q350 118, 430 138 T550 136" stroke="#FB923C" stroke-width="2.5" stroke-linecap="round" class="airflow-path" id="airflow-2"/>
+                </g>
+
+                <!-- Charge Port Glow (Rear Left Fender) -->
+                <circle id="svg-charge-port" cx="655" cy="158" r="6" fill="#10B981" class="animate-pulse"/>
+
+                <!-- Front Wheel -->
+                <g transform="translate(206, 232)">
+                  <circle cx="0" cy="0" r="36" fill="#0F172A" stroke="#334155" stroke-width="3"/>
+                  <circle cx="0" cy="0" r="23" fill="#1E293B" stroke="#94A3B8" stroke-width="2"/>
+                  <circle cx="0" cy="0" r="7" fill="#E82127"/>
+                </g>
+
+                <!-- Rear Wheel -->
+                <g transform="translate(610, 232)">
+                  <circle cx="0" cy="0" r="36" fill="#0F172A" stroke="#334155" stroke-width="3"/>
+                  <circle cx="0" cy="0" r="23" fill="#1E293B" stroke="#94A3B8" stroke-width="2"/>
+                  <circle cx="0" cy="0" r="7" fill="#E82127"/>
+                </g>
+
+                <!-- LED Headlight & Taillight Accents -->
+                <path d="M104 176 L138 170 L125 182 Z" fill="#FFFFFF"/>
+                <path d="M708 170 L682 168 L694 180 Z" fill="#E82127"/>
+              </svg>
+
+              <!-- Interactive Hotspot Buttons Overlaid on Vehicle -->
+              <button onclick="toggleFrunk()" title="Toggle Frunk" class="absolute left-[14%] top-[44%] w-8 h-8 rounded-full bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700 shadow-md flex items-center justify-center text-xs font-bold hover:scale-110 hover:border-tesla-blue transition-all">
+                <span id="frunk-badge">F</span>
+              </button>
+              <button onclick="toggleClimate()" title="Toggle Cabin HVAC" class="absolute left-[46%] top-[28%] px-2.5 py-1 rounded-full bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700 shadow-md flex items-center gap-1 text-xs font-semibold hover:scale-105 hover:border-tesla-blue transition-all">
+                <span id="cabin-hotspot-dot" class="w-2 h-2 rounded-full bg-gray-400"></span>
+                <span id="cabin-hotspot-text">HVAC Off</span>
+              </button>
+              <button onclick="toggleChargePort()" title="Toggle Charge Port" class="absolute right-[15%] top-[42%] w-8 h-8 rounded-full bg-white/90 dark:bg-zinc-900/90 border border-gray-300 dark:border-zinc-700 shadow-md flex items-center justify-center text-xs font-bold text-emerald-500 hover:scale-110 hover:border-emerald-500 transition-all">
+                ⚡
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Quick Vehicle Hardware Icon Strip (Every Icon Works!) -->
+          <div class="relative z-10 grid grid-cols-5 gap-2 pt-4 border-t border-gray-100 dark:border-zinc-800">
+            <!-- Lock/Unlock -->
+            <button onclick="toggleLock()" id="btn-lock" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all">
+              <svg id="icon-lock" class="w-5 h-5 mb-1 text-tesla-blue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span id="label-lock" class="text-[11px] font-semibold">Locked</span>
+            </button>
+
+            <!-- Climate Quick Toggle -->
+            <button onclick="toggleClimate()" id="btn-climate-icon" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all">
+              <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20m-4.93-7.07l-14.14 14.14m0-14.14l14.14 14.14"/></svg>
+              <span id="label-climate-icon" class="text-[11px] font-semibold">Climate</span>
+            </button>
+
+            <!-- Headlights Flash -->
+            <button onclick="toggleLights()" id="btn-lights" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all">
+              <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2"/></svg>
+              <span id="label-lights" class="text-[11px] font-semibold">Lights</span>
+            </button>
+
+            <!-- Frunk Open/Close -->
+            <button onclick="toggleFrunk()" id="btn-frunk" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all">
+              <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"/><polygon points="12 15 17 21 7 21 12 15"/></svg>
+              <span id="label-frunk" class="text-[11px] font-semibold">Frunk</span>
+            </button>
+
+            <!-- Sentry Mode -->
+            <button onclick="toggleSentry()" id="btn-sentry" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all">
+              <svg class="w-5 h-5 mb-1 text-tesla-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              <span id="label-sentry" class="text-[11px] font-semibold">Sentry On</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT: TEFS APM Feature Controls (5 Cols) -->
+        <div class="lg:col-span-5 space-y-5">
+          
+          <!-- Feature 1: Predictive Calendar & Geofence Sync -->
+          <div class="rounded-3xl bg-white dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-tesla-blue">Feature 01</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 font-medium">Zero-Knowledge Edge AI</span>
+                </div>
+                <h3 class="text-base font-bold mt-1">Smart Calendar Departure Sync</h3>
+              </div>
+              <!-- Toggle Switch -->
+              <button id="toggle-calendar" onclick="toggleCalendarSync()" aria-label="Toggle Calendar Sync" class="w-12 h-7 rounded-full bg-gray-300 dark:bg-zinc-700 p-1 transition-colors flex items-center">
+                <span id="knob-calendar" class="w-5 h-5 rounded-full bg-white shadow transform transition-transform"></span>
+              </button>
+            </div>
+
+            <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+              Detects meeting delays locally on-device and shifts cabin pre-conditioning so battery isn't wasted heating an empty car.
+            </p>
+
+            <!-- Live Schedule Simulation Box -->
+            <div class="mt-4 p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800 space-y-2.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-500 dark:text-gray-400">Next Commute Event:</span>
+                <span id="calendar-event-name" class="font-semibold">Product Review @ Gigafactory</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-500 dark:text-gray-400">Departure Target:</span>
+                <span id="departure-time" class="font-bold text-sm tabular-nums">08:30 AM</span>
+              </div>
+              <div id="calendar-savings-banner" class="hidden text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-2 rounded-xl">
+                ✓ Meeting shifted +45m. Saved 1.8 kWh (~7 mi range).
+              </div>
+              <div class="flex gap-2 pt-1">
+                <button onclick="simulateMeetingDelay()" class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-tesla-blue/10 text-tesla-blue hover:bg-tesla-blue hover:text-white transition-colors">
+                  Simulate Meeting Delay (+45m)
+                </button>
+                <button onclick="snoozeDeparture()" class="py-2 px-3 rounded-xl text-xs font-semibold bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
+                  Snooze +15m
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 2: Precision Thermal Pre-Conditioning -->
+          <div class="rounded-3xl bg-white dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-tesla-blue">Feature 02</span>
+                <h3 class="text-base font-bold mt-0.5">Heat-Pump Cabin Pre-Conditioning</h3>
+              </div>
+              <button id="btn-precondition" onclick="toggleClimate()" class="px-4 py-2 rounded-xl text-xs font-bold bg-gray-900 text-white dark:bg-white dark:text-black hover:opacity-90 transition-all">
+                Start HVAC
+              </button>
+            </div>
+
+            <!-- Temperature Stepper Controls -->
+            <div class="mt-4 flex items-center justify-between bg-gray-50 dark:bg-zinc-900 p-3 rounded-2xl border border-gray-200 dark:border-zinc-800">
+              <button onclick="adjustTemp(-2)" aria-label="Decrease Temperature" class="w-11 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-lg font-bold hover:border-tesla-blue active:scale-95 transition-all">
+                &minus;
+              </button>
+              <div class="text-center">
+                <div class="text-2xl font-bold tabular-nums"><span id="target-temp-display">70</span>°F</div>
+                <div id="hvac-mode-label" class="text-[11px] font-medium text-orange-500">Heat Pump • Est. 1.4 kWh</div>
+              </div>
+              <button onclick="adjustTemp(2)" aria-label="Increase Temperature" class="w-11 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-lg font-bold hover:border-tesla-blue active:scale-95 transition-all">
+                +
+              </button>
+            </div>
+          </div>
+
+          <!-- Feature 3: Grid-Aware & Solar "Green Sync" Charging -->
+          <div class="rounded-3xl bg-white dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-500">Feature 03 • Tesla Energy</span>
+                <h3 class="text-base font-bold mt-0.5">Grid-Aware &amp; Solar Smart Charge</h3>
+              </div>
+              <button id="toggle-grid" onclick="toggleGridSync()" aria-label="Toggle Grid Aware Charging" class="w-12 h-7 rounded-full bg-emerald-500 p-1 transition-colors flex items-center justify-end">
+                <span id="knob-grid" class="w-5 h-5 rounded-full bg-white shadow transform transition-transform"></span>
+              </button>
+            </div>
+
+            <!-- Dynamic Energy Cost & Carbon Readout -->
+            <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+                <div class="text-[11px] text-gray-500 dark:text-gray-400">Utility Rate</div>
+                <div id="utility-rate" class="text-sm font-bold text-emerald-500">$0.11/kWh</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+                <div class="text-[11px] text-gray-500 dark:text-gray-400">Clean Mix</div>
+                <div id="clean-mix" class="text-sm font-bold">94% Solar</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+                <div class="text-[11px] text-gray-500 dark:text-gray-400">Monthly Saved</div>
+                <div id="monthly-savings" class="text-sm font-bold text-tesla-blue">$46.50</div>
+              </div>
+            </div>
+
+            <!-- Live 24-Hour Charging & TOU Grid Load Curve Visualization -->
+            <div class="mt-4 p-3 rounded-2xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <span class="font-semibold text-gray-600 dark:text-gray-300">24h Grid Load &amp; Solar Curve</span>
+                <span id="curve-status-label" class="font-bold text-emerald-500">Shifted to Off-Peak Solar</span>
+              </div>
+              <svg viewBox="0 0 320 64" class="w-full h-14 overflow-visible">
+                <!-- Baseline Grid TOU Peak Spike (Dashed) -->
+                <path d="M0,52 Q60,50 110,14 T210,48 T320,20" fill="none" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="4 4"/>
+                <!-- Dynamic TEFS Charging Curve -->
+                <path id="svg-charge-curve" d="M0,54 Q80,52 140,48 T230,12 T320,50" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" class="transition-all duration-500"/>
+              </svg>
+              <div class="flex justify-between text-[10px] text-gray-400 mt-0.5">
+                <span>12 AM</span>
+                <span>8 AM (Peak)</span>
+                <span>1 PM (Solar)</span>
+                <span>9 PM</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- VIEW 2: COMPLETE APM PRODUCT DOCUMENT (PRD & STRATEGY)    -->
+    <!-- ========================================================= -->
+    <section id="view-prd" class="hidden space-y-6">
+      <div class="rounded-3xl bg-white dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder p-6 sm:p-10 shadow-sm space-y-8">
+        
+        <!-- Document Header -->
+        <div class="border-b border-gray-200 dark:border-zinc-800 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-widest text-tesla-red mb-1">Product Requirements Document (PRD)</div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Tesla Energy &amp; Fleet Sync (TEFS)</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Prepared for Tesla Associate Product Manager (APM) Hiring Committee • Vehicle Software &amp; Energy Ecosystem</p>
+          </div>
+          <button onclick="copyResumeBullet()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-tesla-blue text-white hover:bg-blue-600 transition-colors flex items-center gap-2 self-start">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy Resume Bullet
+          </button>
+        </div>
+
+        <!-- 1. Executive Summary & First Principles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-5 rounded-2xl bg-gray-50 dark:bg-zinc-900/80 border border-gray-200 dark:border-zinc-800">
+            <h2 class="text-base font-bold mb-2 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-tesla-red/15 text-tesla-red flex items-center justify-center text-xs font-bold">1</span>
+              Problem Statement (First Principles)
+            </h2>
+            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+              Tesla owners rely on static scheduled departure times. When meetings shift or plans delay, vehicles still execute high-wattage cabin heating/cooling for an empty car—wasting <strong>1.5–3.2 kWh per incident</strong> and creating synchronized morning grid spikes across millions of Superchargers and residential Powerwalls.
+            </p>
+          </div>
+          <div class="p-5 rounded-2xl bg-gray-50 dark:bg-zinc-900/80 border border-gray-200 dark:border-zinc-800">
+            <h2 class="text-base font-bold mb-2 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-tesla-blue/15 text-tesla-blue flex items-center justify-center text-xs font-bold">2</span>
+              Product Vision &amp; Strategic Fit
+            </h2>
+            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+              Transform the Tesla App from a reactive remote control into a <strong>proactive energy orchestrator</strong>. By pairing zero-knowledge on-device calendar telemetry with Tesla Energy Virtual Power Plant (VPP) grid signals, TEFS maximizes range while reducing peak utility strain.
+            </p>
+          </div>
+        </div>
+
+        <!-- 2. Success Metrics (KPIs) Table -->
+        <div>
+          <h2 class="text-lg font-bold mb-3">3. North Star Metrics &amp; Guardrails</h2>
+          <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-zinc-800">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-gray-100 dark:bg-zinc-900 text-xs uppercase font-semibold text-gray-600 dark:text-gray-400">
+                <tr>
+                  <th class="p-3.5">Metric Type</th>
+                  <th class="p-3.5">Key Performance Indicator (KPI)</th>
+                  <th class="p-3.5">6-Month Target</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-zinc-800">
+                <tr>
+                  <td class="p-3.5 font-semibold text-tesla-blue">North Star</td>
+                  <td class="p-3.5">Wasted Idle Pre-Conditioning Energy Eliminated</td>
+                  <td class="p-3.5 font-bold">-35% kWh / vehicle / mo</td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-semibold">Adoption</td>
+                  <td class="p-3.5">Opt-In Calendar + Grid Sync Activation</td>
+                  <td class="p-3.5 font-bold">45% of active v4.x App users</td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-semibold">User Delight</td>
+                  <td class="p-3.5">Cabin Target Temp Accuracy (&plusmn;2&deg;F at entry)</td>
+                  <td class="p-3.5 font-bold">&gt; 92% of departures</td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-semibold text-amber-500">Guardrail</td>
+                  <td class="p-3.5">Unconditioned Cabin Entry (Prediction Miss)</td>
+                  <td class="p-3.5 font-bold">&lt; 2.5% of total trips</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. Go-To-Market & Technical Architecture -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800">
+            <div class="text-xs font-bold text-tesla-blue uppercase">Phase 1 • Weeks 1–3</div>
+            <h3 class="font-bold text-sm mt-1">Internal Employee Dogfooding</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1.5">Deploy via early-access firmware to Fremont, Austin, and Palo Alto employee fleets to tune commute vs. all-day calendar event filtering.</p>
+          </div>
+          <div class="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800">
+            <div class="text-xs font-bold text-emerald-500 uppercase">Phase 2 • Weeks 4–6</div>
+            <h3 class="font-bold text-sm mt-1">Solar + Powerwall Beta Cohort</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1.5">Roll out to 50,000 multi-product homes to validate excess solar thermal pre-conditioning before grid TOU peak windows.</p>
+          </div>
+          <div class="p-4 rounded-2xl border border-gray-200 dark:border-zinc-800">
+            <div class="text-xs font-bold text-purple-500 uppercase">Phase 3 • Week 8+</div>
+            <h3 class="font-bold text-sm mt-1">Global OTA Software Release</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1.5">Full fleet OTA update with Bluetooth RSSI primary-driver phone key prioritization and 1-tap snooze controls.</p>
+          </div>
+        </div>
+
+        <!-- 4. Privacy & Edge Case Mitigation -->
+        <div class="p-5 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+          <h3 class="text-sm font-bold text-tesla-blue mb-1">Privacy &amp; Multi-Driver Architecture</h3>
+          <p class="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+            <strong>Zero-Knowledge Calendar Parsing:</strong> Meeting titles, attendees, and locations never leave the user's phone. Local Edge ML computes only an anonymized timestamp (<code>departure_target_utc</code>) and binds it to the primary driver's phone key via Bluetooth RSSI proximity.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- VIEW 3: FLEET IMPACT & BUSINESS SIMULATOR (FOR HIRING MGRS)-->
+    <!-- ========================================================= -->
+    <section id="view-metrics" class="hidden space-y-6">
+      <div class="rounded-3xl bg-white dark:bg-tesla-darkCard border border-gray-200 dark:border-tesla-darkBorder p-6 sm:p-8 shadow-sm">
+        <div class="max-w-2xl">
+          <span class="text-xs font-bold uppercase tracking-wider text-tesla-blue">Interactive Business Case Model</span>
+          <h2 class="text-2xl font-bold mt-1">North American Fleet &amp; Grid Impact Simulator</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Adjust fleet adoption and grid shift assumptions below to evaluate macro-level energy and VPP revenue impact.</p>
+        </div>
+
+        <!-- Interactive Sliders -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div class="p-5 rounded-2xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+            <div class="flex justify-between text-sm font-semibold mb-2">
+              <span>Active Fleet Opt-In Rate</span>
+              <span id="sim-adoption-val" class="text-tesla-blue font-bold">45%</span>
+            </div>
+            <input type="range" id="sim-adoption" min="10" max="85" value="45" oninput="updateFleetSim()" class="w-full" />
+            <div class="flex justify-between text-[11px] text-gray-500 mt-1">
+              <span>10% (Early Beta)</span>
+              <span>45% (6-Mo Target)</span>
+              <span>85% (Mature)</span>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
+            <div class="flex justify-between text-sm font-semibold mb-2">
+              <span>Avg. Avoided Idle HVAC Events / Week</span>
+              <span id="sim-events-val" class="text-emerald-500 font-bold">2.4 trips</span>
+            </div>
+            <input type="range" id="sim-events" min="1" max="5" step="0.2" value="2.4" oninput="updateFleetSim()" class="w-full" />
+            <div class="flex justify-between text-[11px] text-gray-500 mt-1">
+              <span>1.0 / wk</span>
+              <span>2.4 / wk</span>
+              <span>5.0 / wk</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Calculated Macro Outputs -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+          <div class="p-5 rounded-2xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20">
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400">Annual Energy Saved</div>
+            <div id="sim-gwh-out" class="text-3xl font-bold text-tesla-blue mt-1 tabular-nums">318.6 GWh</div>
+            <div class="text-xs text-gray-500 mt-1">Equivalent to ~1.2B clean miles</div>
+          </div>
+          <div class="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20">
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400">Peak Grid Load Shifted</div>
+            <div id="sim-mw-out" class="text-3xl font-bold text-emerald-500 mt-1 tabular-nums">412 MW</div>
+            <div class="text-xs text-gray-500 mt-1">~4.1 Megapack installations offset</div>
+          </div>
+          <div class="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20">
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400">Customer Utility Savings</div>
+            <div id="sim-usd-out" class="text-3xl font-bold text-amber-500 mt-1 tabular-nums">$89.2M / yr</div>
+            <div class="text-xs text-gray-500 mt-1">Combined TOU + idle elimination</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ==========================================
+    // APPLICATION STATE
+    // ==========================================
+    const state = {
+      darkMode: true,
+      persona: 'commuter',
+      model: 'modely',
+      locked: true,
+      climateOn: false,
+      lightsOn: false,
+      frunkOpen: false,
+      sentryOn: true,
+      calendarSync: false,
+      gridSync: true,
+      targetTemp: 70,
+      cabinTemp: 46,
+      extTemp: 42,
+      batteryPct: 78,
+      departureMinutes: 8 * 60 + 30, // 08:30 AM
+      meetingDelayed: false
+    };
+
+    const vehicleModels = {
+      modely: {
+        name: 'Model Y Long Range',
+        battery: 78,
+        range: 257,
+        bodyPath: 'M92 205 C90 182, 108 166, 148 158 L225 142 C275 96, 345 78, 435 80 C515 82, 585 112, 655 144 C692 150, 712 162, 715 184 L712 216 C712 225, 702 232, 688 232 L646 232 C642 192, 578 192, 574 232 L242 232 C238 192, 174 192, 170 232 L114 232 C98 232, 92 220, 92 205 Z',
+        glassPath: 'M242 140 C288 100, 352 86, 432 88 C504 90, 562 114, 616 142 L455 144 L445 92 L435 144 L242 140 Z',
+        beltPath: 'M150 168 C290 156, 510 154, 685 164'
+      },
+      cybertruck: {
+        name: 'Cybertruck AWD (800V)',
+        battery: 84,
+        range: 286,
+        bodyPath: 'M85 198 L120 152 L390 74 L708 142 L716 218 L688 232 L646 232 C642 190, 578 190, 574 232 L242 232 C238 190, 174 190, 170 232 L105 232 Z',
+        glassPath: 'M165 144 L388 82 L565 122 L565 144 Z',
+        beltPath: 'M115 164 L708 164'
+      },
+      models: {
+        name: 'Model S Plaid',
+        battery: 91,
+        range: 355,
+        bodyPath: 'M88 210 C88 188, 112 172, 155 164 L238 148 C292 106, 362 92, 450 94 C525 96, 595 122, 668 152 C698 158, 714 170, 715 190 L712 218 C712 226, 702 232, 688 232 L646 232 C642 194, 578 194, 574 232 L242 232 C238 194, 174 194, 170 232 L110 232 C95 232, 88 222, 88 210 Z',
+        glassPath: 'M252 146 C300 110, 365 98, 445 100 C512 102, 572 124, 626 148 L460 150 L452 104 L442 150 L252 146 Z',
+        beltPath: 'M148 174 C300 164, 520 162, 692 172'
+      }
+    };
+
+    function selectModel(modelKey) {
+      state.model = modelKey;
+      const spec = vehicleModels[modelKey];
+      document.getElementById('vehicle-title').textContent = spec.name;
+      document.getElementById('battery-pct').textContent = spec.battery;
+      document.getElementById('range-miles').textContent = spec.range;
+      document.getElementById('battery-bar').style.width = `${spec.battery}%`;
+
+      document.getElementById('svg-car-body').setAttribute('d', spec.bodyPath);
+      document.getElementById('svg-car-glass').setAttribute('d', spec.glassPath);
+      document.getElementById('svg-car-beltline').setAttribute('d', spec.beltPath);
+
+      ['modely', 'cybertruck', 'models'].forEach(k => {
+        const btn = document.getElementById(`model-btn-${k}`);
+        if (k === modelKey) {
+          btn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-tesla-blue text-white transition-all';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:border-tesla-blue transition-all';
+        }
+      });
+      showToast(`Loaded Vehicle Profile: ${spec.name}`);
+    }
+
+    // ==========================================
+    // RECRUITER LIGHT / DARK MODE TOGGLE
+    // ==========================================
+    function toggleTheme() {
+      state.darkMode = !state.darkMode;
+      const htmlEl = document.documentElement;
+      const sunIcon = document.getElementById('icon-sun');
+      const moonIcon = document.getElementById('icon-moon');
+      const label = document.getElementById('theme-label');
+
+      if (state.darkMode) {
+        htmlEl.classList.add('dark');
+        sunIcon.classList.remove('hidden');
+        sunIcon.classList.add('block');
+        moonIcon.classList.add('hidden');
+        moonIcon.classList.remove('block');
+        label.textContent = 'Light';
+        showToast('Switched to Tesla In-Car Night UI (Dark Mode)');
+      } else {
+        htmlEl.classList.remove('dark');
+        sunIcon.classList.add('hidden');
+        sunIcon.classList.remove('block');
+        moonIcon.classList.remove('hidden');
+        moonIcon.classList.add('block');
+        label.textContent = 'Dark';
+        showToast('Switched to Tesla Daytime UI (Light Mode)');
+      }
+    }
+
+    // ==========================================
+    // NAVIGATION TABS
+    // ==========================================
+    function switchTab(tabName) {
+      ['prototype', 'prd', 'metrics'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-${t}`);
+        const mobBtn = document.getElementById(`mob-tab-${t}`);
+        if (btn) {
+          btn.classList.remove('bg-white', 'dark:bg-zinc-800', 'shadow-sm', 'text-tesla-lightText', 'dark:text-white');
+          btn.classList.add('text-gray-600', 'dark:text-gray-400');
+        }
+        if (mobBtn) {
+          mobBtn.classList.remove('bg-gray-100', 'dark:bg-zinc-800', 'font-semibold');
+          mobBtn.classList.add('text-gray-500', 'dark:text-gray-400');
+        }
+      });
+
+      document.getElementById(`view-${tabName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabName}`);
+      const activeMob = document.getElementById(`mob-tab-${tabName}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'dark:bg-zinc-800', 'shadow-sm', 'text-tesla-lightText', 'dark:text-white');
+        activeBtn.classList.remove('text-gray-600', 'dark:text-gray-400');
+      }
+      if (activeMob) {
+        activeMob.classList.add('bg-gray-100', 'dark:bg-zinc-800', 'font-semibold');
+        activeMob.classList.remove('text-gray-500', 'dark:text-gray-400');
+      }
+    }
+
+    // ==========================================
+    // PERSONA SWITCHER
+    // ==========================================
+    function changePersona(persona) {
+      state.persona = persona;
+      if (persona === 'solar') {
+        document.getElementById('vehicle-title').textContent = 'Model 3 Performance';
+        document.getElementById('location-subtitle').textContent = 'Tesla Solar Roof + Powerwall 3 (92% Charged)';
+        document.getElementById('calendar-event-name').textContent = 'School Drop-off & Office';
+        document.getElementById('clean-mix').textContent = '100% Solar';
+        showToast('Switched Persona: Solar + Powerwall Household');
+      } else {
+        document.getElementById('vehicle-title').textContent = 'Model Y Long Range';
+        document.getElementById('location-subtitle').textContent = 'Home Charger • Connected to Tesla Energy API';
+        document.getElementById('calendar-event-name').textContent = 'Product Review @ Gigafactory';
+        document.getElementById('clean-mix').textContent = '94% Solar';
+        showToast('Switched Persona: Daily Commuter (Model Y)');
+      }
+    }
+
+    // ==========================================
+    // VEHICLE HARDWARE ICONS & INTERACTIONS
+    // ==========================================
+    function toggleLock() {
+      state.locked = !state.locked;
+      const label = document.getElementById('label-lock');
+      const icon = document.getElementById('icon-lock');
+      label.textContent = state.locked ? 'Locked' : 'Unlocked';
+      icon.classList.toggle('text-tesla-blue', state.locked);
+      icon.classList.toggle('text-amber-500', !state.locked);
+      showToast(state.locked ? 'Vehicle Locked • Mirrors Folded' : 'Vehicle Unlocked • Ready for Entry');
+    }
+
+    function toggleLights() {
+      state.lightsOn = !state.lightsOn;
+      const beam = document.getElementById('svg-headlight-beam');
+      const label = document.getElementById('label-lights');
+      beam.classList.toggle('hidden', !state.lightsOn);
+      label.textContent = state.lightsOn ? 'Lights On' : 'Lights';
+      showToast(state.lightsOn ? 'LED Matrix Headlights Flashed On' : 'Headlights Turned Off');
+    }
+
+    function toggleFrunk() {
+      state.frunkOpen = !state.frunkOpen;
+      document.getElementById('label-frunk').textContent = state.frunkOpen ? 'Frunk Open' : 'Frunk';
+      document.getElementById('frunk-badge').textContent = state.frunkOpen ? 'OPEN' : 'F';
+      showToast(state.frunkOpen ? 'Front Trunk Unlatched' : 'Front Trunk Closed');
+    }
+
+    function toggleSentry() {
+      state.sentryOn = !state.sentryOn;
+      document.getElementById('label-sentry').textContent = state.sentryOn ? 'Sentry On' : 'Sentry Off';
+      showToast(state.sentryOn ? 'Sentry Mode Armed (360° Cameras Active)' : 'Sentry Mode Paused');
+    }
+
+    function toggleChargePort() {
+      showToast('NACS Charge Port Active • 48A / 11.5 kW Ready');
+    }
+
+    // ==========================================
+    // HVAC & THERMAL PRE-CONDITIONING
+    // ==========================================
+    function toggleClimate() {
+      state.climateOn = !state.climateOn;
+      updateClimateVisuals();
+      showToast(state.climateOn
+        ? `Heat Pump Active: Conditioning cabin to ${state.targetTemp}°F`
+        : 'Cabin Pre-Conditioning Stopped');
+    }
+
+    function adjustTemp(delta) {
+      state.targetTemp = Math.min(82, Math.max(60, state.targetTemp + delta));
+      if (!state.climateOn) state.climateOn = true;
+      updateClimateVisuals();
+    }
+
+    function updateClimateVisuals() {
+      const airflowGroup = document.getElementById('svg-airflow-group');
+      const af1 = document.getElementById('airflow-1');
+      const af2 = document.getElementById('airflow-2');
+      const btnPre = document.getElementById('btn-precondition');
+      const hotspotDot = document.getElementById('cabin-hotspot-dot');
+      const hotspotText = document.getElementById('cabin-hotspot-text');
+      const ambientGlow = document.getElementById('ambient-glow');
+      const statusPill = document.getElementById('status-pill');
+
+      document.getElementById('target-temp-display').textContent = state.targetTemp;
+      document.getElementById('target-temp-badge').textContent = `${state.targetTemp}°F`;
+
+      const isHeating = state.targetTemp >= state.cabinTemp;
+      const kwhEst = (Math.abs(state.targetTemp - state.cabinTemp) * 0.058).toFixed(1);
+      document.getElementById('hvac-mode-label').textContent = `${isHeating ? 'Heat Pump Heating' : 'A/C Cooling'} • Est. ${kwhEst} kWh`;
+
+      if (state.climateOn) {
+        airflowGroup.classList.remove('hidden');
+        const strokeColor = isHeating ? '#F97316' : '#38BDF8';
+        af1.setAttribute('stroke', strokeColor);
+        af2.setAttribute('stroke', isHeating ? '#FB923C' : '#7DD3FC');
+
+        btnPre.textContent = 'Stop HVAC';
+        btnPre.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-tesla-red text-white hover:opacity-90 transition-all';
+        hotspotDot.className = `w-2 h-2 rounded-full animate-ping ${isHeating ? 'bg-orange-500' : 'bg-sky-400'}`;
+        hotspotText.textContent = `${isHeating ? 'Heating' : 'Cooling'} ${state.targetTemp}°F`;
+        ambientGlow.className = `absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-colors duration-500 ${isHeating ? 'bg-orange-500/15' : 'bg-sky-500/15'}`;
+        statusPill.textContent = 'Pre-Conditioning Active';
+      } else {
+        airflowGroup.classList.add('hidden');
+        btnPre.textContent = 'Start HVAC';
+        btnPre.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-gray-900 text-white dark:bg-white dark:text-black hover:opacity-90 transition-all';
+        hotspotDot.className = 'w-2 h-2 rounded-full bg-gray-400';
+        hotspotText.textContent = 'HVAC Off';
+        ambientGlow.className = 'absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl pointer-events-none transition-colors duration-500';
+        statusPill.textContent = 'Parked • Ready';
+      }
+    }
+
+    // ==========================================
+    // SMART CALENDAR & GRID SYNC CONTROLS
+    // ==========================================
+    function formatMinutes(totalMins) {
+      const hrs = Math.floor(totalMins / 60) % 24;
+      const mins = totalMins % 60;
+      const ampm = hrs >= 12 ? 'PM' : 'AM';
+      const displayHr = hrs % 12 === 0 ? 12 : hrs % 12;
+      return `${String(displayHr).padStart(2, '0')}:${String(mins).padStart(2, '0')} ${ampm}`;
+    }
+
+    function toggleCalendarSync() {
+      state.calendarSync = !state.calendarSync;
+      const toggle = document.getElementById('toggle-calendar');
+      const knob = document.getElementById('knob-calendar');
+      toggle.classList.toggle('bg-tesla-blue', state.calendarSync);
+      toggle.classList.toggle('bg-gray-300', !state.calendarSync);
+      toggle.classList.toggle('dark:bg-zinc-700', !state.calendarSync);
+      knob.classList.toggle('translate-x-5', state.calendarSync);
+
+      showToast(state.calendarSync
+        ? 'Zero-Knowledge Calendar Sync Enabled'
+        : 'Calendar Sync Paused');
+    }
+
+    function simulateMeetingDelay() {
+      if (!state.calendarSync) {
+        toggleCalendarSync();
+      }
+      state.departureMinutes += 45;
+      document.getElementById('departure-time').textContent = formatMinutes(state.departureMinutes);
+      document.getElementById('calendar-savings-banner').classList.remove('hidden');
+      if (state.climateOn) {
+        state.climateOn = false;
+        updateClimateVisuals();
+      }
+      showToast('Calendar Delay Detected (+45m): Pre-conditioning paused to save 1.8 kWh');
+    }
+
+    function snoozeDeparture() {
+      state.departureMinutes += 15;
+      document.getElementById('departure-time').textContent = formatMinutes(state.departureMinutes);
+      if (state.climateOn) {
+        state.climateOn = false;
+        updateClimateVisuals();
+      }
+      showToast('Departure Snoozed +15m • HVAC Paused');
+    }
+
+    function toggleGridSync() {
+      state.gridSync = !state.gridSync;
+      const toggle = document.getElementById('toggle-grid');
+      const knob = document.getElementById('knob-grid');
+      toggle.classList.toggle('bg-emerald-500', state.gridSync);
+      toggle.classList.toggle('justify-end', state.gridSync);
+      toggle.classList.toggle('bg-gray-300', !state.gridSync);
+      toggle.classList.toggle('dark:bg-zinc-700', !state.gridSync);
+
+      document.getElementById('utility-rate').textContent = state.gridSync ? '$0.11/kWh' : '$0.42/kWh';
+      document.getElementById('utility-rate').className = state.gridSync ? 'text-sm font-bold text-emerald-500' : 'text-sm font-bold text-tesla-red';
+      document.getElementById('monthly-savings').textContent = state.gridSync ? '$46.50' : '$0.00';
+
+      const curve = document.getElementById('svg-charge-curve');
+      const curveLabel = document.getElementById('curve-status-label');
+      if (state.gridSync) {
+        curve.setAttribute('d', 'M0,54 Q80,52 140,48 T230,12 T320,50');
+        curve.setAttribute('stroke', '#10B981');
+        curveLabel.textContent = 'Shifted to Off-Peak Solar';
+        curveLabel.className = 'font-bold text-emerald-500';
+      } else {
+        curve.setAttribute('d', 'M0,52 Q60,50 110,10 T210,48 T320,52');
+        curve.setAttribute('stroke', '#E82127');
+        curveLabel.textContent = 'Immediate Peak Draw';
+        curveLabel.className = 'font-bold text-tesla-red';
+      }
+
+      showToast(state.gridSync
+        ? 'Green Sync Active: Prioritizing Solar & Off-Peak TOU Rates'
+        : 'Immediate Peak Charging Selected ($0.42/kWh)');
+    }
+
+    // ==========================================
+    // FLEET IMPACT SIMULATOR MATH
+    // ==========================================
+    function updateFleetSim() {
+      const adoption = parseFloat(document.getElementById('sim-adoption').value);
+      const eventsPerWeek = parseFloat(document.getElementById('sim-events').value);
+
+      document.getElementById('sim-adoption-val').textContent = `${adoption}%`;
+      document.getElementById('sim-events-val').textContent = `${eventsPerWeek.toFixed(1)} trips`;
+
+      // Base assumption: ~3.2M active North American connected Tesla vehicles
+      const activeVehicles = 3200000 * (adoption / 100);
+      const kwhSavedPerEvent = 1.85;
+      const annualGwh = (activeVehicles * eventsPerWeek * 52 * kwhSavedPerEvent) / 1000000;
+      const peakMwShifted = (activeVehicles * 0.28) / 1000;
+      const customerSavingsUsd = (annualGwh * 1000000 * 0.28) / 1000000;
+
+      document.getElementById('sim-gwh-out').textContent = `${annualGwh.toFixed(1)} GWh`;
+      document.getElementById('sim-mw-out').textContent = `${Math.round(peakMwShifted)} MW`;
+      document.getElementById('sim-usd-out').textContent = `$${customerSavingsUsd.toFixed(1)}M / yr`;
+    }
+
+    // ==========================================
+    // UTILITIES (CLIPBOARD & NON-BLOCKING TOAST)
+    // ==========================================
+    function copyResumeBullet() {
+      const bullet = "Designed and prototyped Tesla Energy & Fleet Sync (TEFS), a grid-aware predictive cabin pre-conditioning feature; modeled thermal energy algorithms projected to cut idle HVAC battery drain by 35% while shifting peak grid load.";
+      const tempInput = document.createElement('textarea');
+      tempInput.value = bullet;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      showToast('Resume bullet copied to clipboard!');
+    }
+
+    function resetSimulation() {
+      state.locked = true;
+      state.climateOn = false;
+      state.lightsOn = false;
+      state.frunkOpen = false;
+      state.targetTemp = 70;
+      state.departureMinutes = 8 * 60 + 30;
+      document.getElementById('departure-time').textContent = '08:30 AM';
+      document.getElementById('calendar-savings-banner').classList.add('hidden');
+      document.getElementById('svg-headlight-beam').classList.add('hidden');
+      document.getElementById('label-lights').textContent = 'Lights';
+      document.getElementById('label-frunk').textContent = 'Frunk';
+      document.getElementById('frunk-badge').textContent = 'F';
+      updateClimateVisuals();
+      showToast('Prototype simulation reset to default state');
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto px-4 py-3 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-semibold shadow-xl border border-zinc-700 dark:border-gray-200 transition-all duration-300 transform translate-y-0 opacity-100';
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 2800);
+    }
+
+    // Initialize Simulator on load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateFleetSim();
+    });
+  </script>
+</body>
+</html>
